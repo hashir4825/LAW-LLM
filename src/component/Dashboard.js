@@ -35,7 +35,7 @@ const Dashboard = () => {
             alt="Logo"
             className="h-10 w-20 mr-3"
           />
-          <span className="text-2xl font-bold text-purple-600">Dashboard</span>
+          <span className="text-2xl font-bold text-black">Dashboard</span>
         </div>
         <div className="flex items-center">
           <span className="text-lg font-semibold text-gray-700 mr-4">
@@ -64,11 +64,11 @@ const Dashboard = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex justify-center items-center pb-5 pt-5"
         >
-          <h1 className="text-4xl font-bold text-purple-600">Documents</h1>
+          <h1 className="text-4xl font-bold text-black">Documents</h1>
         </motion.div>
 
         <div className="w-full px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="col-span-full text-2xl font-semibold text-purple-500 pl-6">
+          <div className="col-span-full text-2xl font-semibold text-black pl-6">
             Drafts
           </div>
           {documents
@@ -76,36 +76,39 @@ const Dashboard = () => {
             .map((document) => (
               <motion.div
                 key={document.id}
-                className="bg-blue-500 border-2 border-black rounded-sm relative shadow-lg"
-                style={{
-                  height: "200px",
-                  padding: "24px",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                className="bg-white shadow-lg rounded-lg overflow-hidden h-48"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <p className="text-5xl text-white">{document.name}</p>
-                <div className="absolute bottom-0 left-0 right-0 bg-white bg-opacity-75 py-2 px-4 flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-yellow-500 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  <p className="text-sm text-gray-900 font-semibold italic">
-                    Draft
-                  </p>
+                <div className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-2xl font-bold text-gray-800">
+                      {document.name}
+                    </div>
+                    <div className="text-3xl">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="feather feather-file"
+    style={{ color: document.status === "draft" ? "#1E40AF" : "#16A34A" }} // Blue for draft, green for finalized
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+  </svg>
+</div>
+                  </div>
                 </div>
+                <div className="bg-blue-500 py-2"></div>
               </motion.div>
             ))}
-          <div className="col-span-full text-2xl font-semibold text-purple-500 pl-6">
+          <div className="col-span-full text-2xl font-semibold text-black pl-6">
             Finalized
           </div>
           {documents
@@ -113,33 +116,36 @@ const Dashboard = () => {
             .map((document) => (
               <motion.div
                 key={document.id}
-                className="bg-purple-500 border-2 border-black rounded-sm relative shadow-lg"
-                style={{
-                  height: "200px",
-                  padding: "24px",
-                }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                className="bg-white shadow-lg rounded-lg overflow-hidden h-48"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <p className="text-5xl text-white">{document.name}</p>
-                <div className="absolute bottom-0 left-0 right-0 bg-white bg-opacity-75 py-2 px-4 flex items-center justify-center">
-                  <svg
-                    className="h-6 w-6 text-green-500 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <p className="text-sm text-gray-900 font-semibold italic">
-                    Finalized
-                  </p>
+                <div className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="text-2xl font-bold text-gray-800">
+                      {document.name}
+                    </div>
+                    <div className="text-3xl">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="feather feather-file"
+    style={{ color: document.status === "draft" ? "#1E40AF" : "#16A34A" }} // Blue for draft, green for finalized
+  >
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+  </svg>
+</div>
+                  </div>
                 </div>
+                <div className="bg-green-500 py-2"></div>
               </motion.div>
             ))}
         </div>
