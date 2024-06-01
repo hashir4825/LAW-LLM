@@ -3,7 +3,7 @@ import ReactQuill from "react-quill";
 import { marked } from "marked";
 
 import "react-quill/dist/quill.snow.css";
-import styles from "./styles.modules.css";
+import "./styles.modules.css";
 
 const Editor = () => {
   const [editorValue, setEditorValue] = useState("");
