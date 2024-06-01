@@ -25,7 +25,7 @@ const Editor = () => {
   useMemo(() => {
     const htmlData = marked(markdownData);
     setEditorValue(htmlData);
-  }, []);
+  }, [markdownData]);
 
   const handler = () => {
     console.log(editorValue);
@@ -97,45 +97,47 @@ const Editor = () => {
   ];
 
   return (
-    <div className={styles.MyEditor}>
-      <div className="bg-purple-500 flex justify-center items-center pb-3 pt-3">
-        <h1 className="text-3xl font-bold text-white">Forms Editor</h1>
+    <div className="my-editor">
+      <div className="header">
+        <h1 className="header-title">Forms Editor</h1>
+        <button
+              className="finalize-button"
+            >
+              Finalize
+            </button>
       </div>
-      <div className="flex">
-        <div className="w-1/4 bg-white p-6 shadow-lg rounded-lg h-screen fixed overflow-y-auto">
-          <div className="mb-4">
-            <div className="bg-purple-500 flex justify-center items-center pb-3 pt-3 mb-3">
-              <h1 className="text-2xl font-bold text-white">User Prompt</h1>
-            </div>
-            <textarea
-              id="prompt"
-              value={promptValue}
-              onChange={(e) => setPromptValue(e.target.value)}
-              rows="10"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your prompt here..."
-            ></textarea>
+      <div className="content">
+        <div className="user-prompt">
+          <div className="user-prompt-header">
+            <h1 className="user-prompt-title">LAW-LLM</h1>
           </div>
-          <div className="space-y-2">
+          <p className="user-prompt-description text-bold">
+          Prompt Below:
+            </p> 
+              
+          <textarea
+            id="prompt"
+            value={promptValue}
+            onChange={(e) => setPromptValue(e.target.value)}
+            rows="10"
+            className="user-prompt-textarea ql-editor"
+            placeholder="Enter your prompt here..."
+          ></textarea>
+          <div className="user-prompt-buttons">
             <button
               onClick={handler}
-              className="w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="generate-button"
             >
               Generate
             </button>
             <button
-              className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="cancel-button"
             >
               Cancel
             </button>
-            <button
-              className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              Finalize
-            </button>
           </div>
         </div>
-        <div className="w-3/4 ml-auto bg-white p-6 shadow-lg rounded-lg">
+        <div className="editor-container">
           <ReactQuill
             ref={(el) => (quill.current = el)}
             theme="snow"
