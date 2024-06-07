@@ -1,31 +1,52 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactQuill from "react-quill";
-import { marked } from "marked";
-
+import { useParams } from "react-router-dom";
 import "react-quill/dist/quill.snow.css";
 import "./styles.modules.css";
 
 const Editor = () => {
+  const { id } = useParams();
   const [editorValue, setEditorValue] = useState("");
   const [promptValue, setPromptValue] = useState("");
+  const [error, setError] = useState(null);
+  const [isDocumentUpdated, setIsDocumentUpdated] = useState(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const quill = useRef();
 
-  const markdownData = `
-  # Sample Form
-  # Section 1
-  **Question 1:** Describe your experience with React.
-  - **Question 2:** How do you manage state in React applications?
-  
-  **Section 2**
-  - **Question 1:** What are your thoughts on server-side rendering?
-  - **Question 2:** Explain the difference between CSS-in-JS and traditional CSS.
-  `;
+  useEffect(() => {
+    const fetchDocument = async (documentId) => {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        console.error("No token found in local storage");
+        return;
+      }
 
-  useMemo(() => {
-    const htmlData = marked(markdownData);
-    setEditorValue(htmlData);
-  }, [markdownData]);
+      try {
+        const response = await fetch(`http://192.168.0.114:8000/api/documents/${documentId}/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch document data");
+        }
+
+        const data = await response.json();
+        setEditorValue(data.content || "");
+      } catch (error) {
+        console.error("An error occurred while fetching the document:", error);
+        setError("Failed to fetch document. Please try again later.");
+      }
+    };
+
+    if (id) {
+      fetchDocument(id);
+    }
+  }, [id]);
 
   const handler = () => {
     console.log(editorValue);
@@ -53,6 +74,73 @@ const Editor = () => {
     };
   }, []);
 
+  const handleFinalize = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      console.error("No token found in local storage");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://192.168.0.114:8000/api/documents/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`,
+        },
+        body: JSON.stringify({
+          status: "final",
+          content: editorValue,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to finalize document");
+      }
+
+      // Handle success response
+      console.log("Document finalized successfully");
+      setIsDocumentUpdated(true);
+
+    } catch (error) {
+      console.error("An error occurred while finalizing the document:", error);
+      setError("Failed to finalize document. Please try again later.");
+    }
+  };
+
+  const handleGenerate = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      console.error("No token found in local storage");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://192.168.0.114:8000/api/documents/${id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`,
+        },
+        body: JSON.stringify({
+          status: "draft",
+          content: editorValue,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update document");
+      }
+
+      // Handle success response
+      console.log("Document updated successfully for generating");
+      setIsPopupOpen(true);
+
+    } catch (error) {
+      console.error("An error occurred while updating the document for generating:", error);
+      setError("Failed to update document for generating. Please try again later.");
+    }
+  };
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -98,23 +186,20 @@ const Editor = () => {
 
   return (
     <div className="my-editor">
+      {error && <div className="text-red-500 text-lg">{error}</div>}
       <div className="header">
         <h1 className="header-title">Forms Editor</h1>
-        <button
-              className="finalize-button"
-            >
-              Finalize
-            </button>
+        <button onClick={handleFinalize} className="finalize-button">
+          Finalize
+        </button>
       </div>
       <div className="content">
         <div className="user-prompt">
           <div className="user-prompt-header">
             <h1 className="user-prompt-title">LAW-LLM</h1>
           </div>
-          <p className="user-prompt-description text-bold">
-          Prompt Below:
-            </p> 
-              
+          <p className="user-prompt-description text-bold">Request:</p>
+
           <textarea
             id="prompt"
             value={promptValue}
@@ -124,17 +209,10 @@ const Editor = () => {
             placeholder="Enter your prompt here..."
           ></textarea>
           <div className="user-prompt-buttons">
-            <button
-              onClick={handler}
-              className="generate-button"
-            >
+            <button className="generate-button" onClick={handleGenerate}>
               Generate
             </button>
-            <button
-              className="cancel-button"
-            >
-              Cancel
-            </button>
+            <button className="cancel-button">Cancel</button>
           </div>
         </div>
         <div className="editor-container">
@@ -148,6 +226,22 @@ const Editor = () => {
           />
         </div>
       </div>
+      {isDocumentUpdated && (
+        <div className="popup">
+          <div className="popup-content">
+            <p>Document updated successfully</p>
+            <button onClick={() => setIsDocumentUpdated(false)}>OK</button>
+          </div>
+        </div>
+      )}
+      {isPopupOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <p>Content Generated</p>
+            <button onClick={() => setIsPopupOpen(false)}>OK</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
