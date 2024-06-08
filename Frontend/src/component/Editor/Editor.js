@@ -1,16 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactQuill from "react-quill";
 import { useParams } from "react-router-dom";
+import { RiSave3Line, RiCheckLine, RiDownload2Line, RiUpload2Line, RiHome2Line } from 'react-icons/ri';
 import "react-quill/dist/quill.snow.css";
 import "./styles.modules.css";
+import { useNavigate } from "react-router-dom";
+
 
 const Editor = () => {
+  const navigate = useNavigate();
+
   const { id } = useParams();
   const [editorValue, setEditorValue] = useState("");
   const [promptValue, setPromptValue] = useState("");
   const [error, setError] = useState(null);
   const [isDocumentUpdated, setIsDocumentUpdated] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [documentTitle, setDocumentTitle] = useState(""); // State to store document title
 
   const quill = useRef();
 
@@ -37,6 +43,7 @@ const Editor = () => {
 
         const data = await response.json();
         setEditorValue(data.content || "");
+        setDocumentTitle(data.title || ""); // Update document title from server
       } catch (error) {
         console.error("An error occurred while fetching the document:", error);
         setError("Failed to fetch document. Please try again later.");
@@ -187,12 +194,29 @@ const Editor = () => {
   return (
     <div className="my-editor">
       {error && <div className="text-red-500 text-lg">{error}</div>}
-      <div className="header">
-        <h1 className="header-title">Forms Editor</h1>
-        <button onClick={handleFinalize} className="finalize-button">
-          Finalize
-        </button>
-      </div>
+      <div className="header flex justify-between items-center">
+        <h1 className="header-title">{documentTitle}</h1>
+  <div className="flex space-x-4 items-center">
+  <div className="bg-green-500 p-2 rounded-full cursor-pointer">
+    <RiSave3Line className="h-6 w-6 text-white" title="Save" />
+  </div>
+  <div className="bg-green-500 p-2 rounded-full cursor-pointer">
+    <RiCheckLine className="h-6 w-6 text-white" title="Approve" />
+  </div>
+  <div className="bg-green-500 p-2 rounded-full cursor-pointer">
+    <RiUpload2Line className="h-6 w-6 text-white" title="Import" />
+  </div>
+  <div className="bg-green-500 p-2 rounded-full cursor-pointer">
+    <RiDownload2Line className="h-6 w-6 text-white" title="Export" />
+  </div>
+  <div className="bg-green-500 p-2 rounded-full cursor-pointer">
+    <RiHome2Line className="h-6 w-6 text-white" onClick={() => navigate("/Dashboard")} title="Home" />
+  </div>
+</div>
+
+</div>
+
+
       <div className="content">
         <div className="user-prompt">
           <div className="user-prompt-header">

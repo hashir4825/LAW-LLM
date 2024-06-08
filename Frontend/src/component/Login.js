@@ -50,8 +50,11 @@ const Login = () => {
 
       {/* Right portion */}
       <div className="flex flex-col w-2/5 items-center p-10 bg-gray-50 dark:bg-gray-900 rounded-lg shadow-lg">
-        <img src={logo} alt="logo" className="w-32 h-32 object-cover mb-8" />
+        {/* <img src={logo} alt="logo" className="w-32 h-32 object-cover mb-8" /> */}
         <section className="w-full">
+        <h1 className="py-5 text-center text-5xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
+            Legal AI Assistant
+          </h1>
           <h1 className="py-5 text-center text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
             Login
           </h1>
