@@ -8,7 +8,7 @@ class Document(models.Model):
     ]
     
     content = models.TextField()
-    status = models.CharField(max_length=5, choices=DocumentStatus)
+    status = models.CharField(max_length=5, choices=DocumentStatus, default='draft')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='documents')
     
     def __str__(self):

@@ -1,24 +1,29 @@
-from django.shortcuts import get_object_or_404
 from .models import Document
-from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import DocumentSerializer
-from rest_framework.authentication import TokenAuthentication
+from .serializers import DocumentCreateSerializer, DocumentViewSerializer
 from rest_framework.permissions import IsAuthenticated
+
 
 class DocumentCreateView(generics.CreateAPIView):
     queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
+    serializer_class = DocumentCreateSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Get the currently logged-in user
+        user = self.request.user
+        # Set the user and status to 'draft' before saving
+        serializer.save(user=user, status='draft')
+
 
 class SingleDocumentView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
+    serializer_class = DocumentViewSerializer
     permission_classes = [IsAuthenticated]
     
 
 class Document_OfSpecificUser(generics.ListAPIView):
-    serializer_class = DocumentSerializer
+    serializer_class = DocumentViewSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -26,8 +31,8 @@ class Document_OfSpecificUser(generics.ListAPIView):
         This view should return a list of all the documents
         for the currently authenticated user.
         """
-        user_id = self.kwargs.get('user_id')  # Assuming 'user_id' is passed via URLconf
-        if user_id:
-            user = get_object_or_404(User, id=user_id)
+        user = self.request.user
+        if user.is_authenticated:
             return Document.objects.filter(user=user)
-        return Document.objects.none()  # Return an empty queryset if no user_id is provided
+        else:
+            return Document.objects.none()  # Return an empty queryset if user is not authenticated
