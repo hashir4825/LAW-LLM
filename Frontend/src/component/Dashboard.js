@@ -193,17 +193,6 @@ const Dashboard = () => {
             </div>
           </div>
         ))}
-
-        {/* Create Button */}
-        <motion.button
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="text-white bg-green-500 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-lg px-8 py-3 mt-8 mb-5"
-          onClick={() => setShowModal(true)}
-        >
-          Create Document
-        </motion.button>
       </motion.div>
 
       {/* Modal */}
