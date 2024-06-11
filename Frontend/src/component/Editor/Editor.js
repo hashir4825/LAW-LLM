@@ -1,3 +1,5 @@
+import {API_BASE_URL} from "../../config";
+import {ip} from "../../config";
 import React, {
   useCallback,
   useEffect,
@@ -29,15 +31,71 @@ const Editor = () => {
   const [isDocumentUpdated, setIsDocumentUpdated] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [documentTitle, setDocumentTitle] = useState(""); // State to store document title
-  const [contextMenu, setContextMenu] = useState({
-    visible: false,
-    top: 0,
-    left: 0,
-  });
   const [message, setMessage] = useState("");
+  const [summarizedContent, setSummarizedContent] = useState(""); // State to store the summarized content
+  const [isPopupOpenforSumamry, setIsPopupOpenforSumamry] = useState(false);
+
+
+
+  const selectionRangeRef = useRef(null);
+
+  const [selectedText, setSelectedText] = useState('');
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+  const [showButton, setShowButton] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [inputtext, setInputText] = useState('');
+
+  const handleMouseUp = (event) => {
+
+    const selection = window.getSelection();
+    const selectedText = selection.toString();
+
+    if (selectedText) {
+
+      setSelectedText(selectedText);
+      const range = selection.getRangeAt(0).cloneRange();
+      const rect = range.getBoundingClientRect();
+      setButtonPosition({ x: rect.right, y: rect.bottom });
+      setShowButton(true);
+
+    } else {
+
+      setShowButton(false);
+      setInputText('');
+      setSelectedText('');
+      setShowDropdown(false);
+
+    }
+  };
+
+  const handleButtonClick = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleInputChange = (event) => {
+    setInputText(event.target.value);
+  }
+
+  const handlemouseup = (e) => {
+    e.stopPropagation();
+  }
+
+  const handleReplaceText = () => {
+    if (selectedText) {
+      const updatedText = editorValue.replace(selectedText, "");
+      setEditorValue(updatedText);
+      setShowDropdown(false);
+      setShowButton(false);
+      setInputText('');
+      setSelectedText('');
+    }
+  };
+
+
 
   const quill = useRef();
 
+  
   useEffect(() => {
     const fetchDocument = async (documentId) => {
       const token = localStorage.getItem("auth_token");
@@ -48,7 +106,7 @@ const Editor = () => {
 
       try {
         const response = await fetch(
-          `http://192.168.0.114:8000/api/documents/${documentId}/`,
+          `${ip}/api/documents/${documentId}/`,
           {
             method: "GET",
             headers: {
@@ -111,7 +169,7 @@ const Editor = () => {
 
     try {
       const response = await fetch(
-        `http://192.168.0.114:8000/api/documents/${id}/`,
+        `${ip}/api/documents/${id}/`,
         {
           method: "PATCH",
           headers: {
@@ -147,7 +205,7 @@ const Editor = () => {
 
     try {
       const response = await fetch(
-        `http://192.168.0.114:8000/api/documents/${id}/`,
+        `${ip}/api/documents/${id}/`,
         {
           method: "PATCH",
           headers: {
@@ -191,7 +249,7 @@ const Editor = () => {
 
     try {
       const response = await fetch(
-        "https://b7cb-2407-d000-d-2495-e9c0-259e-4c55-e69f.ngrok-free.app/generate",
+        `${API_BASE_URL}/generate`,
         {
           method: "POST",
           headers: {
@@ -202,6 +260,7 @@ const Editor = () => {
           }),
         }
       );
+      console.log("Hello");
 
       if (!response.ok) {
         throw new Error("Failed to generate");
@@ -216,10 +275,9 @@ const Editor = () => {
     }
   };
   const summarize = async () => {
-    // console.log(editorValue)
     try {
       const response = await fetch(
-        "https://1bf9-2407-d000-d-2495-e9c0-259e-4c55-e69f.ngrok-free.app/summarize",
+        `${API_BASE_URL}/summarize`,
         {
           method: "POST",
           headers: {
@@ -236,28 +294,139 @@ const Editor = () => {
       }
   
       const data = await response.json();
-      console.log(data); // Log the summarized data to the console
+      setSummarizedContent(data); // Update the state with the summarized content
+      setIsPopupOpenforSumamry(true); // Open the popup to display the summarized content
     } catch (error) {
       console.error("An error occurred while summarizing:", error);
     }
   };
-  
-  const handleSelectionChange = () => {
-    const quillEditor = quill.current.getEditor();
-    const selection = quillEditor.getSelection();
 
-    if (selection && selection.length > 0) {
-      const bounds = quillEditor.getBounds(selection.index, selection.length);
-      const editorBounds = quillEditor.container.getBoundingClientRect();
-      setContextMenu({
-        visible: true,
-        top: editorBounds.top + bounds.bottom + window.scrollY,
-        left: editorBounds.left + bounds.left + window.scrollX,
-      });
-    } else {
-      setContextMenu({ visible: false, top: 0, left: 0 });
+  const regenerate = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/regenerate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: selectedText, // Send the selected content to the server for regeneration
+            prompt : inputtext   
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Failed to regenerate");
+      }
+  
+      const data = await response.json();
+      console.log(data);
+      if (data) {
+        const updatedText = editorValue.replace(selectedText, data);
+        setEditorValue(updatedText);
+        setShowDropdown(false);
+        setShowButton(false);
+        setInputText('');
+        setSelectedText('');
+      }
+      // setRegeneratedContent(data); // Update the state with the regenerated content
+    } catch (error) {
+      console.error("An error occurred while regenerating:", error);
     }
+
   };
+  
+  const longer = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/longer`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: selectedText, // Send the selected content to the server for regeneration
+            prompt : inputtext   
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Failed to regenerate");
+      }
+  
+      const data = await response.json();
+      console.log(data);
+      if (data) {
+        const updatedText = editorValue.replace(selectedText, data);
+        setEditorValue(updatedText);
+        setShowDropdown(false);
+        setShowButton(false);
+        setInputText('');
+        setSelectedText('');
+      }
+      // setRegeneratedContent(data); // Update the state with the regenerated content
+    } catch (error) {
+      console.error("An error occurred while regenerating:", error);
+    }
+
+  };
+  const shorter = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/shorten`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: selectedText, // Send the selected content to the server for regeneration
+            prompt : inputtext   
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Failed to regenerate");
+      }
+  
+      const data = await response.json();
+      console.log(data);
+      if (data) {
+        const updatedText = editorValue.replace(selectedText, data);
+        setEditorValue(updatedText);
+        setShowDropdown(false);
+        setShowButton(false);
+        setInputText('');
+        setSelectedText('');
+      }
+      // setRegeneratedContent(data); // Update the state with the regenerated content
+    } catch (error) {
+      console.error("An error occurred while regenerating:", error);
+    }
+
+  };
+
+  // const handleSelectionChange = () => {
+  //   const quillEditor = quill.current.getEditor();
+  //   const selection = quillEditor.getSelection();
+
+  //   if (selection && selection.length > 0) {
+  //     const bounds = quillEditor.getBounds(selection.index, selection.length);
+  //     const editorBounds = quillEditor.container.getBoundingClientRect();
+  //     setContextMenu({
+  //       visible: true,
+  //       top: editorBounds.top + bounds.bottom + window.scrollY,
+  //       left: editorBounds.left + bounds.left + window.scrollX,
+  //     });
+  //   } else {
+  //     setContextMenu({ visible: false, top: 0, left: 0 });
+  //   }
+  // };
 
   const modules = useMemo(
     () => ({
@@ -305,10 +474,10 @@ const Editor = () => {
     <div className="my-editor">
  <div className="header flex justify-between items-center">
         <div className="flex items-center space-x-4">
-          <h1 className="space-left header-title">{documentTitle}</h1>
+          <h1 className="space-left header-title">Form Editor</h1>
           <div className="flex space-x-4 items-center">
             <div
-              className="bg-gray-300 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-200"
+              className="bg-gray-200 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-300"
               onClick={() => {
                 handleSave();
                 setIsPopupOpen(true);
@@ -317,7 +486,7 @@ const Editor = () => {
               <RiSave3Line className="h-6 w-6" title="Save" />
             </div>
             <div
-              className="bg-gray-300 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-200"
+              className="bg-gray-200 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-300"
               onClick={() => {
                 handleFinalize();
                 setIsDocumentUpdated(true);
@@ -325,15 +494,15 @@ const Editor = () => {
             >
               <RiCheckLine className="h-6 w-6" title="Approve" />
             </div>
-            <div className="bg-gray-300 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-200">
+            <div className="bg-gray-200 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-300">
               <RiUpload2Line className="h-6 w-6" title="Import" />
             </div>
-            <div className="bg-gray-300 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-200">
+            <div className="bg-gray-200 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-300">
               <RiDownload2Line className="h-6 w-6" title="Export" />
             </div>
           </div>
         </div>
-        <div className="bg-gray-300 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-200">
+        <div className="bg-gray-200 p-2 rounded-full cursor-pointer text-gray-500 hover:bg-gray-300">
           <RiHome2Line
             className="h-6 w-6"
             onClick={() => navigate("/Dashboard")}
@@ -354,13 +523,12 @@ const Editor = () => {
             rows="10"
             className="user-prompt-textarea ql-editor"
           />
-          {error && <div className="text-red-500 text-lg">{error}</div>}
-
           <div className="text-center mt-4">
             <button onClick={generate} className="generate-button">
               Generate
             </button>
           </div>
+          {error && <div className="text-red-500 text-lg">{error}</div>}
 
           <div className="text-center mt-4">
             <button onClick={summarize} className="generate-button">
@@ -375,44 +543,47 @@ const Editor = () => {
           </div>
         </div>
         <div className="editor-container">
-          <ReactQuill
+
+        <div onMouseUp={handleMouseUp}>
+                  <ReactQuill
             ref={(el) => (quill.current = el)}
             theme="snow"
             value={editorValue}
             onChange={setEditorValue}
             formats={formats}
             modules={modules}
-            onChangeSelection={handleSelectionChange}
+            // onChangeSelection={handleSelectionChange} // Use handleSelectionChange for context menu positioning
           />
-          {contextMenu.visible && (
-            <div
-              className="context-menu"
-              style={{ top: contextMenu.top, left: contextMenu.left }}
-            >
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button className="flex items-center space-x-1">
-                <FiRefreshCcw />
-                <span className="ml-1">Regenerate</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <FiMinus />
-                <span className="ml-1">Shorter</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <FiPlus />
-                <span className="ml-1">Longer</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <FiTrash />
-                <span className="ml-1">Remove</span>
-              </button>
+
+          
+      {showButton && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${buttonPosition.x}px`,
+            top: `${buttonPosition.y}px`,
+          }}
+          className="dropdown"
+        >
+          <button onClick={handleButtonClick}>▼</button>
+          {showDropdown && (
+            
+            <div className="context-menu" style={{ display: 'flex', flexDirection: 'column', marginTop: '5px', background: 'white', border: '1px solid black', padding: '10px' }} 
+            onMouseUp={handlemouseup}>
+
+              <input type="text" placeholder="Input field" value={inputtext} onChange={handleInputChange} />
+              <button onClick={regenerate}>Regenerate</button>
+              <button onClick={longer}>Longer</button>
+              <button onClick={shorter}>Shorten</button>
+              <button onClick={handleReplaceText}>Remove</button>
+
             </div>
           )}
+        </div>
+      )}
+    </div>
+
+
         </div>
       </div>
       {isDocumentUpdated && (
@@ -431,6 +602,15 @@ const Editor = () => {
           </div>
         </div>
       )}
+      {isPopupOpenforSumamry && (
+  <div className="popup">
+    <div className="popup-contentforSummary">
+    <p className="text-bold text-2xl mb-4">Summary is as follow</p>
+      <p>{summarizedContent}</p>
+      <button onClick={() => setIsPopupOpenforSumamry(false)}>OK</button>
+    </div>
+  </div>
+)}
     </div>
   );
 };

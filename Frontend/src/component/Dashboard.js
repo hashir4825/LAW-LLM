@@ -3,8 +3,7 @@ import logo from "./logo.png";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaPlus } from 'react-icons/fa';
-
-
+import {ip} from "../config";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [documents, setDocuments] = useState([]);
@@ -21,7 +20,7 @@ const Dashboard = () => {
       }
 
       try {
-        const response = await fetch("http://192.168.0.114:8000/api/users/documents/", {
+        const response = await fetch(`${ip}/api/users/documents/`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -53,7 +52,7 @@ const Dashboard = () => {
     }
 
     try {
-      const response = await fetch("http://192.168.0.114:8000/auth/token/logout", {
+      const response = await fetch(`${ip}/auth/token/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,18 +72,72 @@ const Dashboard = () => {
     }
   };
 
-  const handleCreateDocument = () => {
-    // Logic to handle document creation using the message
-    console.log("Document created with message:", message);
-    // Hide the modal after creating the document
-    setShowModal(false);
-  };
+  // const handleCreateDocument = () => {
+  //   // Logic to handle document creation using the message
+  //   console.log("Document created with message:", message);
+  //   // Hide the modal after creating the document
+  //   setShowModal(false);
+  // };
 
   // Group documents by status
   const groupedDocuments = documents.reduce((acc, document) => {
     acc[document.status] = [...(acc[document.status] || []), document];
     return acc;
   }, {});
+
+  const createDocument = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      console.error("No token found in local storage");
+      return;
+    }
+  
+    try {
+      const createResponse = await fetch(
+        `${ip}/api/documents/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+          },
+          body: JSON.stringify({
+            content: "HUH", // Use the value from the input field for the document content
+            status: "draft",
+          }),
+        }
+      );
+  
+      if (!createResponse.ok) {
+        throw new Error("Failed to create document");
+      }
+  
+      console.log("Document created successfully");
+  
+      // Fetch the updated list of documents
+      const response = await fetch(`{ip}/api/users/documents/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Token ${token}`
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch documents");
+      }
+  
+      const data = await response.json();
+      console.log(data);
+      setDocuments(data);
+  
+      setShowModal(false); // Assuming setShowModal is used to close the modal after creating the document
+    } catch (error) {
+      console.error("An error occurred while creating the document:", error);
+      setError("Failed to create document. Please try again later.");
+    }
+  };
+  
 
   return (
     <div
@@ -219,7 +272,7 @@ const Dashboard = () => {
             <div className="flex justify-end">
               <button
                 className="text-white bg-blue-500 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2"
-                onClick={handleCreateDocument}
+                onClick={createDocument}
               >
                 Create
               </button>

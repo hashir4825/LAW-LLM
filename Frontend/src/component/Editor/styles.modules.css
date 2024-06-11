@@ -199,5 +199,19 @@
 }
 .space-left
 {
-  margin-right: 310px;
+  margin-right: 190px;
+}
+.popup-contentforSummary {
+  max-height: 300px; /* Set the maximum height of the popup content */
+  overflow-y: auto; /* Enable vertical scrolling when content exceeds the maximum height */
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  text-align: center;
 }

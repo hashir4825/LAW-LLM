@@ -3,6 +3,7 @@ import Loginpic from './login-removebg.png';
 import logo from './logo.png';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import {ip} from "../config"
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch('http://192.168.0.114:8000/auth/token/login', {
+      const response = await fetch(`${ip}/auth/token/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
